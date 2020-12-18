@@ -7,8 +7,7 @@ package tld
 import (
 	"net/url"
 	"strings"
-
-	"golang.org/x/net/publicsuffix"
+	"github.com/weppos/publicsuffix-go/publicsuffix"
 )
 
 //URL embeds net/url and adds extra fields ontop
@@ -28,38 +27,24 @@ func Parse(s string) (*URL, error) {
 	if url.Host == "" {
 		return &URL{URL: url}, nil
 	}
-	dom, port := domainPort(url.Host)
-	//etld+1
-	/*
-		private tld problem
-		"http://blogspot.co.kr",
-		"http://blogspot.kr",
-	*/
-	etld1, err := publicsuffix.EffectiveTLDPlusOne(dom)
-	if etld1 == "" {
-		return &URL{
-			Subdomain: "",
-			Domain:    "",
-			TLD:       "",
-			Port:      "",
-			ICANN:     false,
-			URL:       url,
-		}, nil
-	}
-	
-	_, icann := publicsuffix.PublicSuffix(strings.ToLower(dom))
-	if err != nil {
-		return nil, err
-	}
-	//convert to domain name, and tld
-	i := strings.Index(etld1, ".")
-	domName := etld1[0:i]
-	tld := etld1[i+1:]
-	//and subdomain
+	_, port := domainPort(url.Host)
+
+	pubDomain, err1 := publicsuffix.DomainFromListWithOptions(publicsuffix.DefaultList, url.Host, &publicsuffix.FindOptions{IgnorePrivate: true})
+	pubParse, _ := publicsuffix.ParseFromListWithOptions(publicsuffix.DefaultList, url.Host, &publicsuffix.FindOptions{IgnorePrivate: true})
+
+	// error parser rules
 	sub := ""
-	if rest := strings.TrimSuffix(dom, "."+etld1); rest != dom {
-		sub = rest
+	domName := ""
+	tld := ""
+	icann := false
+
+	if err1 == nil {
+		sub = url.Host
+		domName = pubDomain
+		tld = pubParse.TLD
+		icann = true
 	}
+
 	return &URL{
 		Subdomain: sub,
 		Domain:    domName,
@@ -68,6 +53,7 @@ func Parse(s string) (*URL, error) {
 		ICANN:     icann,
 		URL:       url,
 	}, nil
+
 }
 
 func domainPort(host string) (string, string) {
