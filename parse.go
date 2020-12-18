@@ -30,7 +30,23 @@ func Parse(s string) (*URL, error) {
 	}
 	dom, port := domainPort(url.Host)
 	//etld+1
+	/*
+		private tld problem
+		"http://blogspot.co.kr",
+		"http://blogspot.kr",
+	*/
 	etld1, err := publicsuffix.EffectiveTLDPlusOne(dom)
+	if etld1 == "" {
+		return &URL{
+			Subdomain: "",
+			Domain:    "",
+			TLD:       "",
+			Port:      "",
+			ICANN:     false,
+			URL:       url,
+		}, nil
+	}
+	
 	_, icann := publicsuffix.PublicSuffix(strings.ToLower(dom))
 	if err != nil {
 		return nil, err
