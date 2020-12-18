@@ -2,4 +2,7 @@ module github.com/eliasdata/go-tld
 
 go 1.14
 
-require golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
+require (
+	github.com/weppos/publicsuffix-go v0.13.0 // indirect
+	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
+)
