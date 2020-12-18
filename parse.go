@@ -6,7 +6,7 @@ package tld
 
 import (
 	"net/url"
-	"strings"
+	//"strings"
 	"github.com/weppos/publicsuffix-go/publicsuffix"
 )
 
